@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agente de Orçamentos</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { min-height: 100vh; background: linear-gradient(135deg, #0a0a0f 0%, #0d1117 50%, #0a0f1a 100%); font-family: 'DM Mono', monospace; color: #e2e8f0; padding: 32px 16px; display: flex; flex-direction: column; align-items: center; }
+    input { width: 100%; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 12px 16px; color: #e2e8f0; font-family: inherit; font-size: 14px; transition: all 0.2s; outline: none; }
+    input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
+    label { font-size: 11px; color: #64748b; letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 8px; }
+    .card { background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 16px; padding: 32px; width: 100%; max-width: 560px; }
+    .btn { background: linear-gradient(135deg,#1d4ed8,#3b82f6); color: white; border: none; padding: 14px 32px; border-radius: 8px; font-family: inherit; font-size: 14px; cursor: pointer; width: 100%; letter-spacing: 1px; transition: all 0.2s; }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(59,130,246,0.3); }
+    .btn-sec { background: transparent; color: #94a3b8; border: 1px solid #334155; padding: 10px 24px; border-radius: 8px; font-family: inherit; font-size: 13px; cursor: pointer; width: 100%; transition: all 0.2s; margin-top: 10px; }
+    .btn-sec:hover { border-color: #64748b; color: #e2e8f0; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .mb24 { margin-bottom: 24px; }
+    .sublabel { font-size: 10px; color: #475569; margin-bottom: 4px; }
+    .total-box { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .total-val { font-size: 18px; color: #3b82f6; font-weight: 500; }
+    .erro-box { color: #f87171; font-size: 12px; margin-bottom: 16px; padding: 10px 14px; background: rgba(248,113,113,0.08); border-radius: 6px; border: 1px solid rgba(248,113,113,0.2); }
+    .tags { display: flex; gap: 8px; margin-top: 14px; justify-content: center; flex-wrap: wrap; }
+    .tag { font-size: 10px; color: #3b82f6; background: rgba(59,130,246,0.08); padding: 4px 10px; border-radius: 4px; }
+    .steps { display: flex; gap: 8px; margin-bottom: 36px; flex-wrap: wrap; justify-content: center; }
+    .step { border: 1px solid; border-radius: 6px; padding: 5px 14px; font-size: 11px; letter-spacing: 1px; transition: all 0.3s; }
+    .step-active { color: #3b82f6; border-color: #3b82f6; background: rgba(59,130,246,0.1); }
+    .step-done { color: #34d399; border-color: #34d399; background: rgba(52,211,153,0.1); }
+    .step-pending { color: #334155; border-color: #1e293b; background: transparent; }
+    .terminal { display: flex; flex-direction: column; gap: 10px; }
+    .log-info { color: #94a3b8; } .log-sucesso { color: #34d399; } .log-aviso { color: #fbbf24; } .log-erro { color: #f87171; }
+    .log-line { font-size: 13px; line-height: 1.6; animation: fadeIn 0.3s ease; }
+    .cursor { color: #3b82f6; animation: pulse 1.5s infinite; font-size: 13px; }
+    .resultado-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #0f172a; border-radius: 8px; border: 1px solid #1e293b; margin-bottom: 8px; }
+    .resultado-label { font-size: 11px; color: #64748b; letter-spacing: 1px; }
+    .resultado-val { font-size: 13px; color: #e2e8f0; text-align: right; max-width: 300px; word-break: break-all; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+    #tela-terminal, #tela-resultado { display: none; }
+  </style>
+</head>
+<body>
+
+  <div style="text-align:center;margin-bottom:40px;max-width:560px;">
+    <div style="font-size:11px;letter-spacing:4px;color:#3b82f6;margin-bottom:12px;text-transform:uppercase;">◆ Agente de Vendas</div>
+    <h1 style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;background:linear-gradient(135deg,#e2e8f0,#94a3b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.2;">Gerador de Orçamentos</h1>
+    <p style="color:#475569;font-size:13px;margin-top:10px;letter-spacing:0.5px;">Google Drive + Bling — integração real</p>
+  </div>
+
+  <div class="steps">
+    <div class="step step-active" id="step-dados">Preencher dados</div>
+    <div class="step step-pending" id="step-produto">Criando produto</div>
+    <div class="step step-pending" id="step-proposta">Criando proposta</div>
+    <div class="step step-pending" id="step-drive">Pasta no Drive</div>
+    <div class="step step-pending" id="step-concluido">Concluído!</div>
+  </div>
+
+  <!-- FORMULÁRIO -->
+  <div class="card" id="tela-form">
+    <div class="mb24">
+      <label>Cliente</label>
+      <input id="cliente" placeholder="Nome do cliente ou empresa" />
+    </div>
+    <div class="mb24">
+      <label>Medidas da Caixa (cm)</label>
+      <div class="grid3">
+        <div><div class="sublabel">Largura</div><input id="largura" type="number" placeholder="0" oninput="calcTotal()" /></div>
+        <div><div class="sublabel">Altura</div><input id="altura" type="number" placeholder="0" oninput="calcTotal()" /></div>
+        <div><div class="sublabel">Profund.</div><input id="profundidade" type="number" placeholder="0" oninput="calcTotal()" /></div>
+      </div>
+    </div>
+    <div class="grid2 mb24">
+      <div><label>Quantidade</label><input id="quantidade" type="number" placeholder="0" oninput="calcTotal()" /></div>
+      <div><label>Valor Unit. (R$)</label><input id="valor" type="number" step="0.01" placeholder="0.00" oninput="calcTotal()" /></div>
+    </div>
+    <div class="total-box" id="total-box" style="display:none;">
+      <span style="font-size:12px;color:#64748b;">Valor Total</span>
+      <span class="total-val" id="total-val">R$ 0.00</span>
+    </div>
+    <div class="erro-box" id="erro-box" style="display:none;"></div>
+    <button class="btn" onclick="executar()">EXECUTAR AGENTE →</button>
+    <div class="tags">
+      <span class="tag">✓ Bling conectado</span>
+      <span class="tag">✓ Drive conectado</span>
+      <span class="tag">✓ Vendedor: João Pedro</span>
+    </div>
+  </div>
+
+  <!-- TERMINAL -->
+  <div class="card" id="tela-terminal">
+    <div style="font-size:11px;color:#64748b;letter-spacing:2px;margin-bottom:20px;text-transform:uppercase;">Terminal do Agente</div>
+    <div class="terminal" id="terminal-log"></div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div class="card" id="tela-resultado">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:40px;margin-bottom:12px;">✅</div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:22px;color:#34d399;">Orçamento Criado!</h2>
+    </div>
+    <div id="resultado-dados"></div>
+    <div style="margin:16px 0 8px;font-size:11px;color:#334155;">Log completo:</div>
+    <div id="resultado-log" style="margin-bottom:20px;"></div>
+    <button class="btn-sec" onclick="reiniciar()">+ Novo Orçamento</button>
+  </div>
+
+<script>
+  let logItems = [];
+
+  function calcTotal() {
+    const v = parseFloat(document.getElementById("valor").value || 0);
+    const q = parseInt(document.getElementById("quantidade").value || 0);
+    const box = document.getElementById("total-box");
+    if (v && q) {
+      document.getElementById("total-val").textContent = `R$ ${(v * q).toFixed(2)}`;
+      box.style.display = "flex";
+    } else { box.style.display = "none"; }
+  }
+
+  function addLog(msg, tipo = "info") {
+    logItems.push({ msg, tipo });
+    const div = document.createElement("div");
+    div.className = `log-line log-${tipo}`;
+    div.innerHTML = `<span style="color:#334155;margin-right:8px;">›</span>${msg}`;
+    document.getElementById("terminal-log").appendChild(div);
+  }
+
+  function setStep(s) {
+    const ids = ["step-dados","step-produto","step-proposta","step-drive","step-concluido"];
+    const labels = ["Preencher dados","Criando produto","Criando proposta","Pasta no Drive","Concluído!"];
+    const idx = ids.indexOf(s);
+    ids.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (i < idx) { el.className = "step step-done"; el.textContent = "✓ " + labels[i]; }
+      else if (i === idx) { el.className = "step step-active"; el.textContent = labels[i]; }
+      else { el.className = "step step-pending"; el.textContent = labels[i]; }
+    });
+  }
+
+  function mostrar(tela) {
+    ["tela-form","tela-terminal","tela-resultado"].forEach(id => {
+      document.getElementById(id).style.display = id === tela ? "block" : "none";
+    });
+  }
+
+  async function executar() {
+    const cliente = document.getElementById("cliente").value.trim();
+    const largura = document.getElementById("largura").value;
+    const altura = document.getElementById("altura").value;
+    const profundidade = document.getElementById("profundidade").value;
+    const quantidade = document.getElementById("quantidade").value;
+    const valor = document.getElementById("valor").value;
+
+    const erroBox = document.getElementById("erro-box");
+    if (!cliente || !largura || !altura || !profundidade || !quantidade || !valor) {
+      erroBox.textContent = "⚠ Todos os campos são obrigatórios.";
+      erroBox.style.display = "block"; return;
+    }
+    erroBox.style.display = "none";
+    logItems = [];
+
+    mostrar("tela-terminal");
+    document.getElementById("terminal-log").innerHTML = "";
+    const cursor = document.createElement("div");
+    cursor.className = "cursor"; cursor.textContent = "▋";
+    document.getElementById("terminal-log").appendChild(cursor);
+
+    addLog("🤖 Agente iniciado...");
+    setStep("step-produto");
+
+    try {
+      const res = await fetch("/api/orcamento", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cliente, largura, altura, profundidade, quantidade, valor }),
+      });
+
+      const data = await res.json();
+      cursor.remove();
+
+      // Exibir logs do servidor
+      if (data.logs) {
+        data.logs.forEach(l => addLog(l.msg, l.tipo));
+      }
+
+      if (data.erros && data.erros.length) {
+        data.erros.forEach(e => addLog(`⚠️ ${e}`, "aviso"));
+      }
+
+      // Atualizar steps conforme resultado
+      if (data.produto) setStep("step-proposta");
+      if (data.proposta) setStep("step-drive");
+      if (data.drive) setStep("step-concluido");
+
+      if (!data.sucesso) {
+        addLog("❌ Falha — verifique os erros acima", "erro");
+        setTimeout(() => mostrar("tela-form"), 4000);
+        return;
+      }
+
+      setTimeout(() => {
+        const rows = [
+          ["Cliente", cliente],
+          ["Produto", `${cliente} - ${largura}x${altura}x${profundidade}cm`],
+          ["Quantidade", `${quantidade} unidades`],
+          ["Valor Unit.", `R$ ${parseFloat(valor).toFixed(2)}`],
+          ["Valor Total", `R$ ${data.valorTotal}`],
+          ["Proposta Bling", `Nº ${data.proposta?.numero || "-"}`],
+          ["Vendedor", "João Pedro Rodrigues dos Santos"],
+          ["Pasta no Drive", data.drive?.nome || "-"],
+        ];
+        document.getElementById("resultado-dados").innerHTML = rows.map(([l, v]) =>
+          `<div class="resultado-row"><span class="resultado-label">${l.toUpperCase()}</span><span class="resultado-val">${v}</span></div>`
+        ).join("");
+        document.getElementById("resultado-log").innerHTML = logItems.map(l =>
+          `<div class="log-${l.tipo}" style="font-size:12px;margin-bottom:6px;">${l.msg}</div>`
+        ).join("");
+        mostrar("tela-resultado");
+      }, 800);
+
+    } catch (e) {
+      cursor.remove();
+      addLog(`❌ Erro de conexão: ${e.message}`, "erro");
+      setTimeout(() => mostrar("tela-form"), 3000);
+    }
+  }
+
+  function reiniciar() {
+    ["cliente","largura","altura","profundidade","quantidade","valor"].forEach(id => document.getElementById(id).value = "");
+    document.getElementById("total-box").style.display = "none";
+    document.getElementById("erro-box").style.display = "none";
+    logItems = [];
+    setStep("step-dados");
+    mostrar("tela-form");
+  }
+
+  mostrar("tela-form");
+</script>
+</body>
+</html>

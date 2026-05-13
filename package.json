@@ -1,0 +1,9 @@
+{
+  "name": "orcamento-agent",
+  "version": "1.0.0",
+  "description": "Agente de orçamentos - Google Drive + Bling",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}
